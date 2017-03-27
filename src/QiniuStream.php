@@ -72,7 +72,7 @@ class QiniuStream implements WrapperInterface
 
             return true;
         } else {
-            dump(9);exit;
+            var_dump(9);exit;
             $info = $this->_getOssClient($path)->getObjectMeta(Qiniu::getBucket(), $name);
             if ($info) {
                 $this->_objectName = $name;
