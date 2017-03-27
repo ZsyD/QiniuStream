@@ -1,0 +1,32 @@
+{
+    "name": "ZsyD/qiniu-stream",
+    "type": "library",
+    "description": "A qiniu OSS streamWrapper class and qiniu OSS SDK.",
+    "keywords": ["php", "qiniu", "wrapper", "streamWrapper"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Zuo",
+            "email": "1251992018@qq.com",
+            "role": "Developer"
+        },
+        {
+            "name": "zhangwei",
+            "email": "942178655@qq.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3",
+        "medz/stream-wrapper-interface": "^1.0.1",
+        "qiniu/php-sdk": "^v7.1.3"
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^1.12"
+    },
+    "autoload": {
+        "psr-4": {
+            "ZsyD\\QiniuStream\\": "src/"
+        }
+    }
+}
