@@ -12,9 +12,11 @@ class Qiniu
 
     protected static $auth;
 
-    protected static $bucket;
+    public static $bucket;
 
     protected static $bucketManager;
+
+    protected static $uploadManager;
 
     protected static $_wrapperClients = [];
 
@@ -26,6 +28,7 @@ class Qiniu
         }
 
         self::$bucketManager = new BucketManager(self::$auth);
+        //self::$uploadManager = new UploadManager();
 
         return $this;
     }
@@ -75,6 +78,11 @@ class Qiniu
         return self::$auth;
     }
 
+    public static function getAuth()
+    {
+        return self::$auth;
+    }
+
 
     /**
      * 注册自定义类的封装协议
@@ -106,7 +114,7 @@ class Qiniu
      */
     public function registerAsClient($name)
     {
-        self::$_wrapperClients[$name] = $this;
+        self::$_wrapperClients[$name] = self::$bucketManager;
 
         return $this;
     }
@@ -133,6 +141,19 @@ class Qiniu
     public static function getWrapperClient($name)
     {
         return self::$_wrapperClients[$name];
+    }
+
+    public function uploadManager()
+    {
+        self::$uploadManager = self::$auth->uploadToken(self::$bucket);
+        $upload = new UploadManager();
+
+        return $upload;
+    }
+
+    public static function getUploadManager()
+    {
+        return self::$uploadManager;
     }
 
     /**********************功能**************************/
