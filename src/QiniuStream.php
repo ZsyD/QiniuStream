@@ -25,6 +25,8 @@ class QiniuStream implements WrapperInterface
 
     private $_bucketMgr = null;
 
+    private $content = null;
+
     /**
      * Extract object name from URL.
      *
@@ -139,7 +141,7 @@ class QiniuStream implements WrapperInterface
     }
 
     /**
-     * TODO 不能重命名
+     * 重命名
      *
      * @param string $path_from
      * @param string $path_to
@@ -147,8 +149,10 @@ class QiniuStream implements WrapperInterface
      */
     public function rename($path_from, $path_to)
     {
+        $_path_from = $this->_getNamePart($path_from);
+        $path_to = $this->_getNamePart($path_to);
         return $this->_getOssClient($path_from)
-            ->rename(Qiniu::getBucket(), $path_from, $path_to);
+            ->rename(Qiniu::getBucket(), $_path_from, $path_to);
     }
 
     public function rmdir($path, $options)
@@ -158,7 +162,6 @@ class QiniuStream implements WrapperInterface
 
     public function stream_cast($cast_as)
     {
-
     }
 
     public function stream_close()
@@ -186,18 +189,14 @@ class QiniuStream implements WrapperInterface
     }
 
     /**
-     * TODO 还有问题
-     * 将缓冲内容输出到文件
-     *
-     * @return bool
+     * @return array|bool
      */
     public function stream_flush()
     {
         if (!$this->_writeBuffer) {
             return false;
         }
-        //$ret = $this->_oss->putObject(AliyunOSS::getBucket(), $this->_objectName, $this->_objectBuffer);
-        $ret = $this->_oss->uploadManager()->put(Qiniu::getUploadManager(), $this->_objectName, $this->_objectBuffer);
+        $ret = Qiniu::uploadManager()->put(Qiniu::getUploadManager(), $this->_objectName, $this->_objectBuffer);
         $this->_objectBuffer = null;
 
         return $ret;
@@ -227,6 +226,10 @@ class QiniuStream implements WrapperInterface
         $range_start = $this->_position;
         $range_end = $this->_position + $count;
 
+        if (!$this->_objectBuffer) {
+            $this->_objectBuffer = file_get_contents(Qiniu::getDomain().$this->_objectName);
+        }
+
         // Only fetch more data from OSS if we haven't fetched any data yet (postion=0)
         // OR, the range end position is greater than the size of the current object
         // buffer AND if the range end position is less than or equal to the object's
@@ -235,27 +238,11 @@ class QiniuStream implements WrapperInterface
             $options = [
                 'range' => $range_start.'-'.$range_end,
             ];
-           // $this->_objectBuffer .= $this->_oss->get(Qiniu::getBucket(), $this->_objectName, $options);
-
-            $headers = Qiniu::getAuth()->authorization($this->_objectName);
-            $ret = Client::get($this->_objectName, $headers);
-            var_dump($ret);
-
-            if (!$ret->ok()) {
-                return array(null, new Error($this->_objectName, $ret));
-            }
-            return array($ret->json(), null);
-
         }
-
         $data = substr($this->_objectBuffer, $this->_position, $count);
         $this->_position += strlen($data);
 
         return $data;
-
-        $ret = substr($GLOBALS[$this->_objectName], $this->_objectName, $count);
-        $this->_position += strlen($ret);
-        return $ret;
     }
 
     /**
@@ -352,7 +339,7 @@ class QiniuStream implements WrapperInterface
      * 写入流
      *
      * @param string $data
-     * @return int
+     * @return array|int
      */
     public function stream_write($data)
     {
@@ -363,7 +350,10 @@ class QiniuStream implements WrapperInterface
         $this->_objectBuffer .= $data;
         $this->_objectSize += $len;
         // TODO: handle current position for writing!
-        return $len;
+        $ret =  Qiniu::uploadManager()->put(Qiniu::getUploadManager(), $this->_objectName, $this->_objectBuffer);
+        $this->_objectBuffer = '';
+
+        return $ret;
     }
 
     /**

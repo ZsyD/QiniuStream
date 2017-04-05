@@ -14,6 +14,8 @@ class Qiniu
 
     public static $bucket;
 
+    public static $domain;
+
     protected static $bucketManager;
 
     protected static $uploadManager;
@@ -52,6 +54,29 @@ class Qiniu
     public function setBucket($bucket)
     {
         static::$bucket = $bucket;
+
+        return $this;
+    }
+
+    /**
+     * 获取域名 $domain
+     *
+     * @return $this
+     */
+    public static function getDomain()
+    {
+        return static::$domain;
+    }
+
+    /**
+     * 设置域名
+     *
+     * @param $domain
+     * @return $this
+     */
+    public function setDomain($domain)
+    {
+        static::$domain = $domain;
 
         return $this;
     }
@@ -143,9 +168,8 @@ class Qiniu
         return self::$_wrapperClients[$name];
     }
 
-    public function uploadManager()
+    public static function uploadManager()
     {
-        self::$uploadManager = self::$auth->uploadToken(self::$bucket);
         $upload = new UploadManager();
 
         return $upload;
@@ -153,6 +177,8 @@ class Qiniu
 
     public static function getUploadManager()
     {
+        self::$uploadManager = self::$auth->uploadToken(self::$bucket);
+
         return self::$uploadManager;
     }
 
